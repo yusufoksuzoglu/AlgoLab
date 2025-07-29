@@ -1,142 +1,87 @@
-#include<bits/stdc++.h>
+#include <iostream>
+#include <vector>
 using namespace std;
 
-bool arkadas(int m,int n,vector<vector<vector<char>>> &saha){
-    for(char c:saha[m][n]){
-        if(c=='#') return true;
-    }
-    return false;
-}
-
-bool forvet(int m,int n,vector<vector<vector<char>>> &saha){
-    for(char c:saha[m][n]){
-        if(c=='0') return true;
-    }
-    return false;
-}
-
-void topugonder(int m,int n,vector<vector<vector<char>>> &saha){
-    auto &hucresel=saha[m][n];
-    for(auto it=hucresel.begin();it!=hucresel.end();++it){
-        if(*it=='0'){
-            hucresel.erase(it);
-            break;
-        }
-    }
-}
-
-int rakipsayi(int m,int n,vector<vector<vector<char>>> &saha){
-    int sayi=0;
-    for(char c:saha[m][n]){
-        if(c=='*') sayi++;
-    }
-    return sayi;
-}
-
-int sayi(int m,int n,vector<vector<vector<char>>> &saha){
-    int count=0;
-    for(char c:saha[m][n]){
-        if(c=='#') count++;
-    }
-    return count;
-}
-
-void baskiyagit(int m,int n,int l,int k,vector<vector<vector<char>>> &saha){
-    auto &kaynak=saha[m][n];
-    for(auto it=kaynak.begin();it!=kaynak.end();++it){
-        if(*it=='*'){
-            kaynak.erase(it);
-            saha[l][k].push_back('*');
-            break;
-        }
-    }
-}
-
 bool takimarkadasi(int m,int n,vector<vector<vector<char>>> &saha){
-    int dx[]={-1,-1,-1,0,0};
-    int dy[]={-1,0,1,-1,1};
-    for(int i=0;i<5;++i){
+    int dx[]={-1,0,1};
+    int dy[]={-1,-1,-1};
+    for(int i=0;i<3;++i){
         int nx=m+dx[i];
         int ny=n+dy[i];
         if(nx>=0&&ny>=0&&nx<5&&ny<5){
-            for(char c:saha[nx][ny]){
-                if(c=='#') return true;
+                if(count(saha[ny][nx].begin(), saha[ny][nx].end(), '#') == 1 && count(saha[ny][nx].begin(), saha[ny][nx].end(), '*') == 0){
+                    saha[ny][nx].push_back('0');
+                    for(auto it=saha[n][m].begin();it!=saha[n][m].end();++it){
+                        if(*it=='0'){
+                            saha[n][m].erase(it);
+                            break;
+                        }
+                    }
+                    return true;
+                }
             }
+        }
+    return false;
+}
+
+bool forvet(vector<vector<vector<char>>> &saha){
+    for(int i = 0;i<5;++i){
+        if(count(saha[1][i].begin(),saha[1][i].end(),'#') != 0 && count(saha[1][i].begin(),saha[1][i].end(),'0') == 1) return true;
+    }
+    return false;
+}
+pair<int, int> topubul(vector<vector<vector<char>>> &saha){
+    for(int i=0; i<5; ++i){
+        for(int j=0; j<5; ++j){
+            if(count(saha[i][j].begin(), saha[i][j].end(), '0') == 1) return make_pair(i, j);
+        }
+    }
+    return make_pair(-1, -1);
+}
+
+bool baskiyagit(int m,int n,int l,int k,vector<vector<vector<char>>> &saha){
+    if (count(saha[k][l].begin(), saha[k][l].end(), '*')==2) return false;
+    auto &kaynak=saha[n][m];
+    for(auto it=kaynak.begin();it!=kaynak.end();++it){
+        if(*it=='*'){
+            kaynak.erase(it);
+            saha[k][l].push_back('*');
+            return true;
         }
     }
     return false;
 }
 
-bool baski(int x,int y,vector<vector<vector<char>>> &saha){
-    int rakip=0;
-    for(char c:saha[x][y]){
-        if(c=='*') rakip++;
+bool pas(pair<int, int> cord, vector<vector<vector<char>>> &saha){
+    int m = cord.first;
+    int n = cord.second;
+    if (count(saha[n][m].begin(), saha[n][m].end(), '*')==1){
+        if(takimarkadasi(m, n, saha)) return true;
+        if(baskiyagit(m-1, n, m, n, saha)) return false;
+        if(baskiyagit(m+1, n, m, n, saha)) return false;
+        if(baskiyagit(m-1, n-1, m, n, saha)) return false;
+        if(baskiyagit(m, n-1, m, n, saha)) return false;
+        if(baskiyagit(m+1, n-1, m, n, saha)) return false;
     }
-    return(rakip<2);
+    
+    if (count(saha[n][m].begin(), saha[n][m].end(), '*')==2) return false;
+    return takimarkadasi(m, n, saha);
 }
 
 int main(){
-    vector<vector<vector<char>>> saha(5,vector<vector<char>>(5));
-    int x,y,c,d;
-/*maçın 11'e 11 yapıldığı düşünülür.
-Bu sebeple 5x5 bir matris iş görecektir. Öncelikli olarak tüm sahanın boş olduğu düşünülür.
-Daha sonra sırasıyla A ve B takımları sahaya yerleştirilir. 
-Son olarak her iki takımın da en ileri bölgesinde en az bir forvete sahip olduğu kabul edilir. */
-    for(int i=0;i<11;++i){
-        cin>>x>>y;
-        saha[x][y].push_back('*');
-    }
-
-    for(int i=0;i<11;++i){
-        cin>>c>>d;
-        saha[c][d].push_back('#');
-    }
-
-    cin>>x>>y; //topun hangi bölgede olduğu kararlaştırılır.
-    saha[x][y].push_back('0');
-
-    while(takimarkadasi(x,y,saha)){
-        if(rakipsayi(x,y,saha)<2){
-            int dx[]={-1,-1,-1,0,0};
-            int dy[]={-1,0,1,-1,1};
-            for(int i=0;i<5;++i){
-                int nx=x+dx[i];
-                int ny=y+dy[i];
-                if(nx>=0&&ny>=0&&nx<5&&ny<5&&rakipsayi(nx,ny,saha)>0){
-                    baskiyagit(nx,ny,x,y,saha);
-                }
-            }
-        }
-
-        int dx[]={-1,-1,-1,0,0};
-        int dy[]={-1,0,1,-1,1};
-        bool pasYapildi=false;
-
-        for(int i=0;i<5;++i){
-            int nx=x+dx[i];
-            int ny=y+dy[i];
-            if(nx>=0&&ny>=0&&nx<5&&ny<5){
-                if(baski(nx,ny,saha)&&arkadas(nx,ny,saha)&&!baski(x,y,saha)){
-                    topugonder(x,y,saha);
-                    saha[nx][ny].push_back('0');
-                    x=nx;
-                    y=ny;
-                    pasYapildi=true;
-                    break;
-                }
-            }
-        }
-
-        if(!pasYapildi){
-            cout<<"Gegenpress başarıyla uygulanmıştır!"<<endl;
-            break;
-        }
-
-        if(forvet(1,1,saha)||forvet(1,2,saha)||forvet(1,3,saha)){
-            cout<<"GOL GOL GOL"<<endl;
-            break;
+    vector<vector<vector<char>>> saha = {
+            { {}, {}, {'*'}, {}, {} },
+            { {'*'}, {'#','*'}, {'#',}, {'#','*'}, {} },
+            { {'*'}, {'#','*'}, {'#'}, {'#','*'}, {'*'} },
+            { {'#','0'}, {'#','*'}, {'*'}, {'#','*'}, {'#'} },
+            { {}, {}, {'#'}, {}, {} }
+          };
+    while(pas(topubul(saha),saha)){
+        if(forvet(saha)){
+            cout<<"GOL OLDU!";
+            return 0;
         }
     }
-
+    cout<<"GEGENPRESS BAŞARIYLA UYGULANMIŞTIR!";
     return 0;
 }
